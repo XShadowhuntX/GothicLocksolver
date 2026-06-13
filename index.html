@@ -43,6 +43,26 @@
             margin-bottom: 15px;
         }
 
+        .side-image {
+            position: fixed;
+            top: 95px;
+            width: 280px;
+            max-height: calc(100vh - 130px);
+            object-fit: contain;
+            z-index: 5;
+            border-radius: 10px;
+            border: 2px solid #8a673d;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.55);
+        }
+
+        .left-pinned-image {
+            left: 35px;
+        }
+
+        .right-pinned-image {
+            right: 35px;
+        }
+
         .logo-wrapper {
             display: flex;
             justify-content: center;
@@ -173,9 +193,18 @@
             color: #c9f0a6;
             font-weight: bold;
         }
+
+        @media (max-width: 1600px) {
+            .side-image {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <img src="lockpick.png" alt="Lockpick Bild" class="side-image left-pinned-image">
+    <img src="chest.png" alt="Truhen Bild" class="side-image right-pinned-image">
 
     <h1>Lock Puzzle Solver</h1>
 
