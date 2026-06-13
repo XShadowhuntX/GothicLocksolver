@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Lock Puzzle Solver</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1e1e1e;
+            color: #f0f0f0;
+            margin: 0;
+            padding: 30px;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        .box {
+            background: #2b2b2b;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 1200px;
+            margin: 20px auto;
+            border: 1px solid #444;
+        }
+
+        label {
+            display: block;
+            margin-top: 12px;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #777;
+            background: #111;
+            color: #fff;
+        }
+
+        input {
+            width: 90px;
+        }
+
+        select {
+            width: 150px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #5c8cff;
+            color: white;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #3f73e8;
+        }
+
+        .pin-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .pin-card {
+            background: #1b1b1b;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #555;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background: #181818;
+        }
+
+        .hint {
+            color: #cfcfcf;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        pre {
+            background: #111;
+            color: #00ff99;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            border: 1px solid #333;
+        }
+
+        .error {
+            color: #ff7777;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #00ff99;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Lock Puzzle Solver</h1>
+
+    <div class="box">
+        <h2>Grunddaten</h2>
+
+        <label for="blockCount">Anzahl an Blöcken:</label>
+        <input id="blockCount" type="number" min="1" max="8" value="5">
+
+        <p class="hint">
+            Löcher pro Block: <strong>7</strong><br>
+            Zielposition / Mitte: <strong>4</strong>
+        </p>
+
+        <br>
+
+        <button onclick="generateMask()">Maske erstellen</button>
+        <button onclick="loadExample()">Dein Beispiel laden</button>
+    </div>
+
+    <div id="inputArea" class="box" style="display:none;"></div>
+
+    <div id="resultArea" class="box" style="display:none;">
+        <h2>Ergebnis</h2>
+        <div id="status"></div>
+
+        <h3>Genaue Lösung</h3>
+        <pre id="solutionOutput"></pre>
+
+        <h3>Kurzform</h3>
+        <pre id="compactOutput"></pre>
+    </div>
+
+    <script>
+        const HOLE_COUNT = 7;
+        const TARGET_POSITION = 4;
+
+        /*
+            Wichtig:
+            Die Ausgabe wird gespiegelt.
+
+            Intern:
+            direction  1 = rechts
+            direction -1 = links
+
+            Ausgabe:
+            direction  1 = links
+            direction -1 = rechts
+        */
+        const OUTPUT_IS_MIRRORED = true;
+
+        function generateMask() {
+            const blockCount = readNumber("blockCount");
+            const holeCount = HOLE_COUNT;
+            const targetPosition = TARGET_POSITION;
+
+            if (blockCount < 1) {
+                alert("Die Anzahl der Blöcke muss mindestens 1 sein.");
+                return;
+            }
+
+            if (blockCount > 8) {
+                alert("Mehr als 8 Blöcke können sehr lange dauern. Bitte erstmal mit maximal 8 Blöcken arbeiten.");
+                return;
+            }
+
+            const inputArea = document.getElementById("inputArea");
+            inputArea.style.display = "block";
+
+            let html = "";
+
+            html += "<h2>1. Aktuelle Pinpositionen</h2>";
+            html += "<p class='hint'>Zähle die Löcher von links nach rechts. Bei 7 Löchern ist die Mitte Position 4.</p>";
+            html += "<div class='pin-grid'>";
+
+            for (let i = 0; i < blockCount; i++) {
+                html += `
+                    <div class="pin-card">
+                        <label for="pos_${i}">B${i + 1} Position:</label>
+                        <input id="pos_${i}" type="number" min="1" max="${holeCount}" value="${targetPosition}">
+                    </div>
+                `;
+            }
+
+            html += "</div>";
+
+            html += "<h2>2. Wirkung beim Schieben nach rechts</h2>";
+            html += `
+                <p class="hint">
+                    Trage ein, was passiert, wenn du einen Block nach rechts bewegst.<br><br>
+                    <strong>rechts</strong> bedeutet: betroffener Block bewegt sich nach rechts.<br>
+                    <strong>links</strong> bedeutet: betroffener Block bewegt sich nach links.<br>
+                    <strong>keine Bewegung</strong> bedeutet: betroffener Block bewegt sich nicht.<br><br>
+                    Die Bewegung nach links wird automatisch gespiegelt.
+                </p>
+            `;
+
+            html += "<table>";
+            html += "<tr><th>Aktion</th>";
+
+            for (let j = 0; j < blockCount; j++) {
+                html += `<th>Wirkung auf B${j + 1}</th>`;
+            }
+
+            html += "</tr>";
+
+            for (let i = 0; i < blockCount; i++) {
+                html += `<tr><th>B${i + 1} nach rechts</th>`;
+
+                for (let j = 0; j < blockCount; j++) {
+                    const defaultValue = i === j ? 1 : 0;
+
+                    html += `
+                        <td>
+                            <select id="effect_${i}_${j}">
+                                <option value="-1" ${defaultValue === -1 ? "selected" : ""}>links</option>
+                                <option value="0" ${defaultValue === 0 ? "selected" : ""}>keine Bewegung</option>
+                                <option value="1" ${defaultValue === 1 ? "selected" : ""}>rechts</option>
+                            </select>
+                        </td>
+                    `;
+                }
+
+                html += "</tr>";
+            }
+
+            html += "</table>";
+
+            html += "<button onclick='solvePuzzle()'>Lösung berechnen</button>";
+
+            inputArea.innerHTML = html;
+
+            document.getElementById("resultArea").style.display = "none";
+        }
+
+        function solvePuzzle() {
+            const blockCount = readNumber("blockCount");
+            const holeCount = HOLE_COUNT;
+            const targetPosition = TARGET_POSITION;
+
+            const startState = [];
+            const goalState = [];
+
+            for (let i = 0; i < blockCount; i++) {
+                const position = readNumber(`pos_${i}`);
+
+                if (position < 1 || position > holeCount) {
+                    showError(`B${i + 1} hat eine ungültige Position. Erlaubt sind nur 1 bis 7.`);
+                    return;
+                }
+
+                startState.push(position);
+                goalState.push(targetPosition);
+            }
+
+            const effects = [];
+
+            for (let i = 0; i < blockCount; i++) {
+                const row = [];
+
+                for (let j = 0; j < blockCount; j++) {
+                    const value = readNumber(`effect_${i}_${j}`);
+                    row.push(value);
+                }
+
+                effects.push(row);
+            }
+
+            const solution = bfsSolve(startState, goalState, effects, holeCount);
+
+            if (!solution.found) {
+                showError(solution.message);
+                return;
+            }
+
+            showSolution(solution.steps);
+        }
+
+        function bfsSolve(startState, goalState, effects, holeCount) {
+            const startKey = stateToKey(startState);
+            const goalKey = stateToKey(goalState);
+
+            if (startKey === goalKey) {
+                return {
+                    found: true,
+                    steps: []
+                };
+            }
+
+            const queue = [startState];
+            let queueIndex = 0;
+
+            const visited = new Map();
+
+            visited.set(startKey, {
+                previous: null,
+                action: null
+            });
+
+            const maxCheckedStates = 1000000;
+            let checkedStates = 0;
+
+            while (queueIndex < queue.length) {
+                const currentState = queue[queueIndex];
+                queueIndex++;
+                checkedStates++;
+
+                if (checkedStates > maxCheckedStates) {
+                    return {
+                        found: false,
+                        message: "Abbruch: Zu viele mögliche Zustände. Versuche weniger Blöcke oder prüfe die Eingaben."
+                    };
+                }
+
+                for (let blockIndex = 0; blockIndex < effects.length; blockIndex++) {
+                    for (const direction of [1, -1]) {
+                        const nextState = applyMove(currentState, effects[blockIndex], direction, holeCount);
+
+                        if (nextState === null) {
+                            continue;
+                        }
+
+                        const nextKey = stateToKey(nextState);
+
+                        if (visited.has(nextKey)) {
+                            continue;
+                        }
+
+                        const actionText = buildActionText(blockIndex, direction);
+
+                        visited.set(nextKey, {
+                            previous: stateToKey(currentState),
+                            action: actionText
+                        });
+
+                        if (nextKey === goalKey) {
+                            return {
+                                found: true,
+                                steps: reconstructSteps(visited, startKey, goalKey)
+                            };
+                        }
+
+                        queue.push(nextState);
+                    }
+                }
+            }
+
+            return {
+                found: false,
+                message: "Keine Lösung gefunden. Prüfe die Pinpositionen und die Bewegungswirkungen."
+            };
+        }
+
+        function applyMove(state, effectRow, direction, holeCount) {
+            const nextState = [];
+
+            for (let i = 0; i < state.length; i++) {
+                const nextPosition = state[i] + effectRow[i] * direction;
+
+                if (nextPosition < 1 || nextPosition > holeCount) {
+                    return null;
+                }
+
+                nextState.push(nextPosition);
+            }
+
+            return nextState;
+        }
+
+        function buildActionText(blockIndex, direction) {
+            let directionText;
+
+            if (OUTPUT_IS_MIRRORED) {
+                directionText = direction === 1 ? "links" : "rechts";
+            } else {
+                directionText = direction === 1 ? "rechts" : "links";
+            }
+
+            return `B${blockIndex + 1} nach ${directionText}`;
+        }
+
+        function reconstructSteps(visited, startKey, goalKey) {
+            const steps = [];
+            let currentKey = goalKey;
+
+            while (currentKey !== startKey) {
+                const data = visited.get(currentKey);
+                steps.push(data.action);
+                currentKey = data.previous;
+            }
+
+            steps.reverse();
+            return steps;
+        }
+
+        function showSolution(steps) {
+            const resultArea = document.getElementById("resultArea");
+            const status = document.getElementById("status");
+            const solutionOutput = document.getElementById("solutionOutput");
+            const compactOutput = document.getElementById("compactOutput");
+
+            resultArea.style.display = "block";
+
+            if (steps.length === 0) {
+                status.innerHTML = "<p class='success'>Das Schloss ist bereits gelöst.</p>";
+                solutionOutput.textContent = "";
+                compactOutput.textContent = "";
+                return;
+            }
+
+            status.innerHTML = `<p class='success'>Lösung gefunden mit ${steps.length} Bewegungen.</p>`;
+
+            let exactText = "";
+
+            for (let i = 0; i < steps.length; i++) {
+                exactText += `${i + 1}. ${steps[i]}\n`;
+            }
+
+            solutionOutput.textContent = exactText;
+            compactOutput.textContent = buildCompactText(steps);
+
+            resultArea.scrollIntoView({
+                behavior: "smooth"
+            });
+        }
+
+        function buildCompactText(steps) {
+            if (steps.length === 0) {
+                return "";
+            }
+
+            const groups = [];
+            let currentAction = steps[0];
+            let count = 1;
+
+            for (let i = 1; i < steps.length; i++) {
+                if (steps[i] === currentAction) {
+                    count++;
+                } else {
+                    groups.push({
+                        action: currentAction,
+                        count: count
+                    });
+
+                    currentAction = steps[i];
+                    count = 1;
+                }
+            }
+
+            groups.push({
+                action: currentAction,
+                count: count
+            });
+
+            let text = "";
+
+            for (const group of groups) {
+                if (group.count === 1) {
+                    text += `${group.action}\n`;
+                } else {
+                    text += `${group.action} x${group.count}\n`;
+                }
+            }
+
+            return text;
+        }
+
+        function showError(message) {
+            const resultArea = document.getElementById("resultArea");
+            const status = document.getElementById("status");
+            const solutionOutput = document.getElementById("solutionOutput");
+            const compactOutput = document.getElementById("compactOutput");
+
+            resultArea.style.display = "block";
+            status.innerHTML = `<p class='error'>${message}</p>`;
+            solutionOutput.textContent = "";
+            compactOutput.textContent = "";
+
+            resultArea.scrollIntoView({
+                behavior: "smooth"
+            });
+        }
+
+        function readNumber(id) {
+            return Number(document.getElementById(id).value);
+        }
+
+        function stateToKey(state) {
+            return state.join(",");
+        }
+
+        function loadExample() {
+            document.getElementById("blockCount").value = 5;
+
+            generateMask();
+
+            const positions = [6, 3, 5, 1, 2];
+
+            for (let i = 0; i < positions.length; i++) {
+                document.getElementById(`pos_${i}`).value = positions[i];
+            }
+
+            const effects = [
+                [ 1,  1,  0,  0,  0 ],
+                [ 0,  1,  0, -1,  0 ],
+                [ 0,  0,  1,  0,  0 ],
+                [ 0, -1, -1,  1, -1 ],
+                [ 1, -1, -1,  0,  1 ]
+            ];
+
+            for (let i = 0; i < effects.length; i++) {
+                for (let j = 0; j < effects[i].length; j++) {
+                    document.getElementById(`effect_${i}_${j}`).value = effects[i][j];
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
