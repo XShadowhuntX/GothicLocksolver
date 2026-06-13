@@ -2,42 +2,88 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lock Puzzle Solver</title>
 
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #1e1e1e;
-            color: #f0f0f0;
+            font-family: Georgia, "Times New Roman", serif;
+            color: #f5e7c8;
             margin: 0;
             padding: 30px;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top, rgba(255, 214, 140, 0.08), transparent 30%),
+                linear-gradient(rgba(25, 15, 8, 0.72), rgba(25, 15, 8, 0.82)),
+                linear-gradient(90deg,
+                    #4b2f1d 0%,
+                    #5a3820 8%,
+                    #452917 16%,
+                    #603c24 24%,
+                    #4b2f1d 32%,
+                    #5c3922 40%,
+                    #462917 48%,
+                    #5b3721 56%,
+                    #4b2f1d 64%,
+                    #5f3b23 72%,
+                    #452816 80%,
+                    #59371f 88%,
+                    #4b2f1d 100%);
+            background-attachment: fixed;
         }
 
-        h1, h2 {
+        h1, h2, h3 {
             text-align: center;
+            color: #f4dfb2;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+        }
+
+        .logo-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: 10px auto 30px auto;
+        }
+
+        .top-logo {
+            max-width: 900px;
+            width: 90%;
+            border-radius: 12px;
+            border: 2px solid #8a673d;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.55);
         }
 
         .box {
-            background: #2b2b2b;
+            background:
+                linear-gradient(rgba(68, 42, 24, 0.92), rgba(48, 29, 16, 0.94));
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 12px;
             max-width: 1200px;
             margin: 20px auto;
-            border: 1px solid #444;
+            border: 1px solid #8a673d;
+            box-shadow:
+                0 8px 24px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255, 231, 180, 0.08);
         }
 
         label {
             display: block;
             margin-top: 12px;
             margin-bottom: 5px;
+            color: #f0ddbb;
         }
 
         input, select {
             padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #777;
-            background: #111;
-            color: #fff;
+            border-radius: 6px;
+            border: 1px solid #9b7746;
+            background: #1e140d;
+            color: #f8ecd2;
+            font-family: inherit;
         }
 
         input {
@@ -51,16 +97,18 @@
         button {
             margin-top: 20px;
             padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
+            border: 1px solid #d0a35b;
+            border-radius: 7px;
             cursor: pointer;
-            background: #5c8cff;
-            color: white;
+            background: linear-gradient(#8f6631, #6f4c24);
+            color: #fff2d2;
             font-weight: bold;
+            font-family: inherit;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.25);
         }
 
         button:hover {
-            background: #3f73e8;
+            background: linear-gradient(#a77739, #7c5528);
         }
 
         .pin-grid {
@@ -70,51 +118,59 @@
         }
 
         .pin-card {
-            background: #1b1b1b;
+            background: linear-gradient(rgba(34, 21, 13, 0.96), rgba(44, 28, 18, 0.96));
             padding: 15px;
             border-radius: 8px;
-            border: 1px solid #444;
+            border: 1px solid #7b5b35;
+            box-shadow: inset 0 1px 0 rgba(255, 230, 180, 0.05);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
+            color: #f5e7c8;
         }
 
         th, td {
-            border: 1px solid #555;
+            border: 1px solid #7e6039;
             padding: 8px;
             text-align: center;
         }
 
         th {
-            background: #181818;
+            background: rgba(33, 20, 12, 0.9);
+            color: #f3dfb3;
+        }
+
+        td {
+            background: rgba(64, 40, 24, 0.45);
         }
 
         .hint {
-            color: #cfcfcf;
-            font-size: 0.95rem;
-            line-height: 1.5;
+            color: #ead6ae;
+            font-size: 0.98rem;
+            line-height: 1.6;
         }
 
         pre {
-            background: #111;
-            color: #00ff99;
+            background: #1b120b;
+            color: #f7edc9;
             padding: 15px;
             border-radius: 8px;
             overflow-x: auto;
             white-space: pre-wrap;
-            border: 1px solid #333;
+            border: 1px solid #7f6038;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
         }
 
         .error {
-            color: #ff7777;
+            color: #ff9a8a;
             font-weight: bold;
         }
 
         .success {
-            color: #00ff99;
+            color: #c9f0a6;
             font-weight: bold;
         }
     </style>
@@ -123,21 +179,19 @@
 
     <h1>Lock Puzzle Solver</h1>
 
+    <div class="logo-wrapper">
+        <img src="gothic.png" alt="Gothic Logo" class="top-logo">
+    </div>
+
     <div class="box">
         <h2>Grunddaten</h2>
 
         <label for="blockCount">Anzahl an Blöcken:</label>
         <input id="blockCount" type="number" min="1" max="8" value="5">
 
-        <p class="hint">
-            Löcher pro Block: <strong>7</strong><br>
-            Zielposition / Mitte: <strong>4</strong>
-        </p>
-
         <br>
 
         <button onclick="generateMask()">Maske erstellen</button>
-        <button onclick="loadExample()">Dein Beispiel laden</button>
     </div>
 
     <div id="inputArea" class="box" style="display:none;"></div>
@@ -157,18 +211,6 @@
         const HOLE_COUNT = 7;
         const TARGET_POSITION = 4;
 
-        /*
-            Wichtig:
-            Die Ausgabe wird gespiegelt.
-
-            Intern:
-            direction  1 = rechts
-            direction -1 = links
-
-            Ausgabe:
-            direction  1 = links
-            direction -1 = rechts
-        */
         const OUTPUT_IS_MIRRORED = true;
 
         function generateMask() {
@@ -251,7 +293,6 @@
             html += "<button onclick='solvePuzzle()'>Lösung berechnen</button>";
 
             inputArea.innerHTML = html;
-
             document.getElementById("resultArea").style.display = "none";
         }
 
@@ -509,32 +550,6 @@
 
         function stateToKey(state) {
             return state.join(",");
-        }
-
-        function loadExample() {
-            document.getElementById("blockCount").value = 5;
-
-            generateMask();
-
-            const positions = [6, 3, 5, 1, 2];
-
-            for (let i = 0; i < positions.length; i++) {
-                document.getElementById(`pos_${i}`).value = positions[i];
-            }
-
-            const effects = [
-                [ 1,  1,  0,  0,  0 ],
-                [ 0,  1,  0, -1,  0 ],
-                [ 0,  0,  1,  0,  0 ],
-                [ 0, -1, -1,  1, -1 ],
-                [ 1, -1, -1,  0,  1 ]
-            ];
-
-            for (let i = 0; i < effects.length; i++) {
-                for (let j = 0; j < effects[i].length; j++) {
-                    document.getElementById(`effect_${i}_${j}`).value = effects[i][j];
-                }
-            }
         }
     </script>
 
