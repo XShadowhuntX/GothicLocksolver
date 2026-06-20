@@ -131,6 +131,15 @@
             background: linear-gradient(#a77739, #7c5528);
         }
 
+        button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            background: linear-gradient(#8f6631, #6f4c24);
+        }
+
         .pin-grid {
             display: flex;
             flex-wrap: wrap;
@@ -143,6 +152,25 @@
             border-radius: 8px;
             border: 1px solid #7b5b35;
             box-shadow: inset 0 1px 0 rgba(255, 230, 180, 0.05);
+        }
+
+        .progress-text {
+            color: #ead6ae;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .step-navigation {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .wizard-table-wrapper {
+            overflow-x: auto;
+            margin-top: 15px;
         }
 
         table {
@@ -242,6 +270,12 @@
 
         const OUTPUT_IS_MIRRORED = true;
 
+        let puzzleState = {
+            blockCount: 0,
+            effects: [],
+            currentRowIndex: 0
+        };
+
         function generateMask() {
             const blockCount = readNumber("blockCount");
             const holeCount = HOLE_COUNT;
@@ -255,6 +289,21 @@
             if (blockCount > 8) {
                 alert("Mehr als 8 Blöcke können sehr lange dauern. Bitte erstmal mit maximal 8 Blöcken arbeiten.");
                 return;
+            }
+
+            puzzleState.blockCount = blockCount;
+            puzzleState.effects = [];
+            puzzleState.currentRowIndex = 0;
+
+            for (let i = 0; i < blockCount; i++) {
+                const row = [];
+
+                for (let j = 0; j < blockCount; j++) {
+                    const defaultValue = i === j ? 1 : 0;
+                    row.push(defaultValue);
+                }
+
+                puzzleState.effects.push(row);
             }
 
             const inputArea = document.getElementById("inputArea");
@@ -280,7 +329,7 @@
             html += "<h2>2. Wirkung beim Schieben nach rechts</h2>";
             html += `
                 <p class="hint">
-                    Trage ein, was passiert, wenn du einen Block nach rechts bewegst.<br><br>
+                    Trage reihenweise ein, was passiert, wenn du einen Block nach rechts bewegst.<br><br>
                     <strong>rechts</strong> bedeutet: betroffener Block bewegt sich nach rechts.<br>
                     <strong>links</strong> bedeutet: betroffener Block bewegt sich nach links.<br>
                     <strong>keine Bewegung</strong> bedeutet: betroffener Block bewegt sich nicht.<br><br>
@@ -288,45 +337,113 @@
                 </p>
             `;
 
-            html += "<table>";
-            html += "<tr><th>Aktion</th>";
+            html += `<div id="effectWizard"></div>`;
+
+            inputArea.innerHTML = html;
+
+            document.getElementById("resultArea").style.display = "none";
+
+            renderEffectRow();
+        }
+
+        function renderEffectRow() {
+            const wizard = document.getElementById("effectWizard");
+
+            if (!wizard) {
+                return;
+            }
+
+            const blockCount = puzzleState.blockCount;
+            const currentRowIndex = puzzleState.currentRowIndex;
+
+            let html = "";
+
+            html += `<p class="progress-text">Reihe ${currentRowIndex + 1} von ${blockCount}</p>`;
+
+            html += `<h3>B${currentRowIndex + 1} nach rechts</h3>`;
+
+            html += `<div class="wizard-table-wrapper">`;
+            html += `<table>`;
+            html += `<tr>`;
+            html += `<th>Aktion</th>`;
 
             for (let j = 0; j < blockCount; j++) {
                 html += `<th>Wirkung auf B${j + 1}</th>`;
             }
 
-            html += "</tr>";
+            html += `</tr>`;
+            html += `<tr>`;
+            html += `<th>B${currentRowIndex + 1} nach rechts</th>`;
 
-            for (let i = 0; i < blockCount; i++) {
-                html += `<tr><th>B${i + 1} nach rechts</th>`;
+            for (let j = 0; j < blockCount; j++) {
+                const currentValue = puzzleState.effects[currentRowIndex][j];
 
-                for (let j = 0; j < blockCount; j++) {
-                    const defaultValue = i === j ? 1 : 0;
-
-                    html += `
-                        <td>
-                            <select id="effect_${i}_${j}">
-                                <option value="-1" ${defaultValue === -1 ? "selected" : ""}>links</option>
-                                <option value="0" ${defaultValue === 0 ? "selected" : ""}>keine Bewegung</option>
-                                <option value="1" ${defaultValue === 1 ? "selected" : ""}>rechts</option>
-                            </select>
-                        </td>
-                    `;
-                }
-
-                html += "</tr>";
+                html += `
+                    <td>
+                        <select id="rowEffect_${j}">
+                            <option value="-1" ${currentValue === -1 ? "selected" : ""}>links</option>
+                            <option value="0" ${currentValue === 0 ? "selected" : ""}>keine Bewegung</option>
+                            <option value="1" ${currentValue === 1 ? "selected" : ""}>rechts</option>
+                        </select>
+                    </td>
+                `;
             }
 
-            html += "</table>";
+            html += `</tr>`;
+            html += `</table>`;
+            html += `</div>`;
 
-            html += "<button onclick='solvePuzzle()'>Lösung berechnen</button>";
+            html += `
+                <div class="step-navigation">
+                    <button onclick="goToPreviousRow()" ${currentRowIndex === 0 ? "disabled" : ""}>Zurück</button>
+            `;
 
-            inputArea.innerHTML = html;
-            document.getElementById("resultArea").style.display = "none";
+            if (currentRowIndex < blockCount - 1) {
+                html += `<button onclick="goToNextRow()">Weiter</button>`;
+            } else {
+                html += `<button onclick="solvePuzzle()">Lösung Berechnen</button>`;
+            }
+
+            html += `</div>`;
+
+            wizard.innerHTML = html;
+        }
+
+        function saveCurrentRow() {
+            const blockCount = puzzleState.blockCount;
+            const currentRowIndex = puzzleState.currentRowIndex;
+
+            for (let j = 0; j < blockCount; j++) {
+                const select = document.getElementById(`rowEffect_${j}`);
+
+                if (select) {
+                    puzzleState.effects[currentRowIndex][j] = Number(select.value);
+                }
+            }
+        }
+
+        function goToNextRow() {
+            saveCurrentRow();
+
+            if (puzzleState.currentRowIndex < puzzleState.blockCount - 1) {
+                puzzleState.currentRowIndex++;
+                renderEffectRow();
+            }
+        }
+
+        function goToPreviousRow() {
+            saveCurrentRow();
+
+            if (puzzleState.currentRowIndex > 0) {
+                puzzleState.currentRowIndex--;
+                renderEffectRow();
+            }
         }
 
         function solvePuzzle() {
-            const blockCount = readNumber("blockCount");
+            saveCurrentRow();
+
+            const blockCount = puzzleState.blockCount;
             const holeCount = HOLE_COUNT;
             const targetPosition = TARGET_POSITION;
 
@@ -345,18 +462,7 @@
                 goalState.push(targetPosition);
             }
 
-            const effects = [];
-
-            for (let i = 0; i < blockCount; i++) {
-                const row = [];
-
-                for (let j = 0; j < blockCount; j++) {
-                    const value = readNumber(`effect_${i}_${j}`);
-                    row.push(value);
-                }
-
-                effects.push(row);
-            }
+            const effects = puzzleState.effects;
 
             const solution = bfsSolve(startState, goalState, effects, holeCount);
 
