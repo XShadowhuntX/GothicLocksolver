@@ -5,241 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lock Puzzle Solver</title>
 
-    <style>
-        body {
-            font-family: Georgia, "Times New Roman", serif;
-            color: #f5e7c8;
-            margin: 0;
-            padding: 30px;
-            min-height: 100vh;
-            background:
-                radial-gradient(circle at top, rgba(255, 214, 140, 0.08), transparent 30%),
-                linear-gradient(rgba(25, 15, 8, 0.72), rgba(25, 15, 8, 0.82)),
-                linear-gradient(90deg,
-                    #4b2f1d 0%,
-                    #5a3820 8%,
-                    #452917 16%,
-                    #603c24 24%,
-                    #4b2f1d 32%,
-                    #5c3922 40%,
-                    #462917 48%,
-                    #5b3721 56%,
-                    #4b2f1d 64%,
-                    #5f3b23 72%,
-                    #452816 80%,
-                    #59371f 88%,
-                    #4b2f1d 100%);
-            background-attachment: fixed;
-        }
-
-        h1, h2, h3 {
-            text-align: center;
-            color: #f4dfb2;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            margin-bottom: 15px;
-        }
-
-        .side-image {
-            position: fixed;
-            top: 95px;
-            width: 280px;
-            max-height: calc(100vh - 130px);
-            object-fit: contain;
-            z-index: 5;
-            border-radius: 10px;
-            border: 2px solid #8a673d;
-            box-shadow: 0 8px 28px rgba(0,0,0,0.55);
-        }
-
-        .left-pinned-image {
-            left: 35px;
-        }
-
-        .right-pinned-image {
-            right: 35px;
-        }
-
-        .logo-wrapper {
-            display: flex;
-            justify-content: center;
-            margin: 10px auto 30px auto;
-        }
-
-        .top-logo {
-            max-width: 900px;
-            width: 90%;
-            border-radius: 12px;
-            border: 2px solid #8a673d;
-            box-shadow: 0 8px 28px rgba(0,0,0,0.55);
-        }
-
-        .box {
-            background:
-                linear-gradient(rgba(68, 42, 24, 0.92), rgba(48, 29, 16, 0.94));
-            padding: 20px;
-            border-radius: 12px;
-            max-width: 1200px;
-            margin: 20px auto;
-            border: 1px solid #8a673d;
-            box-shadow:
-                0 8px 24px rgba(0,0,0,0.4),
-                inset 0 1px 0 rgba(255, 231, 180, 0.08);
-        }
-
-        label {
-            display: block;
-            margin-top: 12px;
-            margin-bottom: 5px;
-            color: #f0ddbb;
-        }
-
-        input, select {
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #9b7746;
-            background: #1e140d;
-            color: #f8ecd2;
-            font-family: inherit;
-        }
-
-        input {
-            width: 90px;
-        }
-
-        select {
-            width: 150px;
-        }
-
-        button {
-            margin-top: 20px;
-            padding: 10px 16px;
-            border: 1px solid #d0a35b;
-            border-radius: 7px;
-            cursor: pointer;
-            background: linear-gradient(#8f6631, #6f4c24);
-            color: #fff2d2;
-            font-weight: bold;
-            font-family: inherit;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.25);
-        }
-
-        button:hover {
-            background: linear-gradient(#a77739, #7c5528);
-        }
-
-        button:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-        }
-
-        button:disabled:hover {
-            background: linear-gradient(#8f6631, #6f4c24);
-        }
-
-        .pin-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .pin-card {
-            background: linear-gradient(rgba(34, 21, 13, 0.96), rgba(44, 28, 18, 0.96));
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #7b5b35;
-            box-shadow: inset 0 1px 0 rgba(255, 230, 180, 0.05);
-        }
-
-        .progress-text {
-            color: #ead6ae;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .step-navigation {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .wizard-table-wrapper {
-            overflow-x: auto;
-            margin-top: 15px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            color: #f5e7c8;
-        }
-
-        th, td {
-            border: 1px solid #7e6039;
-            padding: 8px;
-            text-align: center;
-        }
-
-        th {
-            background: rgba(33, 20, 12, 0.9);
-            color: #f3dfb3;
-        }
-
-        td {
-            background: rgba(64, 40, 24, 0.45);
-        }
-
-        .hint {
-            color: #ead6ae;
-            font-size: 0.98rem;
-            line-height: 1.6;
-        }
-
-        pre {
-            background: #1b120b;
-            color: #f7edc9;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            border: 1px solid #7f6038;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-        }
-
-        .error {
-            color: #ff9a8a;
-            font-weight: bold;
-        }
-
-        .success {
-            color: #c9f0a6;
-            font-weight: bold;
-        }
-
-        @media (max-width: 1600px) {
-            .side-image {
-                display: none;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <!-- Seitliche Bilder -->
     <img src="lockpick.png" alt="Lockpick Bild" class="side-image left-pinned-image">
     <img src="chest.png" alt="Truhen Bild" class="side-image right-pinned-image">
 
+    <!-- Titel -->
     <h1>Lock Puzzle Solver</h1>
 
+    <!-- Logo -->
     <div class="logo-wrapper">
         <img src="gothic.png" alt="Gothic Logo" class="top-logo">
     </div>
 
+    <!-- Grunddaten -->
     <div class="box">
         <h2>Grunddaten</h2>
 
@@ -251,10 +33,13 @@
         <button onclick="generateMask()">Maske erstellen</button>
     </div>
 
-    <div id="inputArea" class="box" style="display:none;"></div>
+    <!-- Eingabebereich -->
+    <div id="inputArea" class="box is-hidden"></div>
 
-    <div id="resultArea" class="box" style="display:none;">
+    <!-- Ergebnisbereich -->
+    <div id="resultArea" class="box is-hidden">
         <h2>Ergebnis</h2>
+
         <div id="status"></div>
 
         <h3>Genaue Lösung</h3>
@@ -265,21 +50,34 @@
     </div>
 
     <script>
+        /*
+            Grundeinstellungen
+        */
         const HOLE_COUNT = 7;
         const TARGET_POSITION = 4;
 
+        /*
+            true bedeutet:
+            Ausgabe wird gespiegelt.
+            Intern rechnet der Solver normal,
+            aber die angezeigte Richtung wird umgedreht.
+        */
         const OUTPUT_IS_MIRRORED = true;
 
+        /*
+            Speicher für aktuelle Eingaben
+        */
         let puzzleState = {
             blockCount: 0,
             effects: [],
             currentRowIndex: 0
         };
 
+        /*
+            Erstellt die Eingabemaske
+        */
         function generateMask() {
             const blockCount = readNumber("blockCount");
-            const holeCount = HOLE_COUNT;
-            const targetPosition = TARGET_POSITION;
 
             if (blockCount < 1) {
                 alert("Die Anzahl der Blöcke muss mindestens 1 sein.");
@@ -291,6 +89,17 @@
                 return;
             }
 
+            resetPuzzleState(blockCount);
+            renderInputArea(blockCount);
+
+            hideResultArea();
+            renderEffectRow();
+        }
+
+        /*
+            Setzt die internen Daten zurück
+        */
+        function resetPuzzleState(blockCount) {
             puzzleState.blockCount = blockCount;
             puzzleState.effects = [];
             puzzleState.currentRowIndex = 0;
@@ -305,10 +114,28 @@
 
                 puzzleState.effects.push(row);
             }
+        }
 
+        /*
+            Baut den sichtbaren Eingabebereich
+        */
+        function renderInputArea(blockCount) {
             const inputArea = document.getElementById("inputArea");
-            inputArea.style.display = "block";
 
+            inputArea.classList.remove("is-hidden");
+
+            let html = "";
+
+            html += buildPositionSection(blockCount);
+            html += buildEffectSection();
+
+            inputArea.innerHTML = html;
+        }
+
+        /*
+            Erstellt den Bereich für die aktuellen Pinpositionen
+        */
+        function buildPositionSection(blockCount) {
             let html = "";
 
             html += "<h2>1. Aktuelle Pinpositionen</h2>";
@@ -319,35 +146,45 @@
                 html += `
                     <div class="pin-card">
                         <label for="pos_${i}">B${i + 1} Position:</label>
-                        <input id="pos_${i}" type="number" min="1" max="${holeCount}" value="${targetPosition}">
+                        <input id="pos_${i}" type="number" min="1" max="${HOLE_COUNT}" value="${TARGET_POSITION}">
                     </div>
                 `;
             }
 
             html += "</div>";
 
+            return html;
+        }
+
+        /*
+            Erstellt den Bereich für die Bewegungswirkungen
+        */
+        function buildEffectSection() {
+            let html = "";
+
             html += "<h2>2. Wirkung beim Schieben nach rechts</h2>";
+
             html += `
                 <p class="hint">
                     Trage reihenweise ein, was passiert, wenn du einen Block nach rechts bewegst.<br><br>
+
                     <strong>rechts</strong> bedeutet: betroffener Block bewegt sich nach rechts.<br>
                     <strong>links</strong> bedeutet: betroffener Block bewegt sich nach links.<br>
-                    <strong>keine Bewegung</strong> bedeutet: betroffener Block bewegt sich nicht.<br>
-                    <strong>Blöcke</strong> werden gezählt von <strong>unten</strong> ab 1.<br>
-                    <strong>Pins</strong> werden gezählt von <strong>links</strong> ab 1.<br><br>
+                    <strong>keine Bewegung</strong> bedeutet: betroffener Block bewegt sich nicht.<br><br>
+
                     Die Bewegung nach links wird automatisch gespiegelt.
                 </p>
             `;
 
             html += `<div id="effectWizard"></div>`;
 
-            inputArea.innerHTML = html;
-
-            document.getElementById("resultArea").style.display = "none";
-
-            renderEffectRow();
+            return html;
         }
 
+        /*
+            Zeigt immer genau eine komplette Reihe an:
+            B1 nach rechts, dann B2 nach rechts, dann B3 usw.
+        */
         function renderEffectRow() {
             const wizard = document.getElementById("effectWizard");
 
@@ -361,11 +198,23 @@
             let html = "";
 
             html += `<p class="progress-text">Reihe ${currentRowIndex + 1} von ${blockCount}</p>`;
-
             html += `<h3>B${currentRowIndex + 1} nach rechts</h3>`;
+
+            html += buildEffectTable(blockCount, currentRowIndex);
+            html += buildNavigationButtons(blockCount, currentRowIndex);
+
+            wizard.innerHTML = html;
+        }
+
+        /*
+            Erstellt die aktuelle Tabellenreihe
+        */
+        function buildEffectTable(blockCount, currentRowIndex) {
+            let html = "";
 
             html += `<div class="wizard-table-wrapper">`;
             html += `<table>`;
+
             html += `<tr>`;
             html += `<th>Aktion</th>`;
 
@@ -374,6 +223,7 @@
             }
 
             html += `</tr>`;
+
             html += `<tr>`;
             html += `<th>B${currentRowIndex + 1} nach rechts</th>`;
 
@@ -395,22 +245,45 @@
             html += `</table>`;
             html += `</div>`;
 
+            return html;
+        }
+
+        /*
+            Erstellt Zurück, Weiter und Lösung-Berechnen-Button
+        */
+        function buildNavigationButtons(blockCount, currentRowIndex) {
+            let html = "";
+
+            html += `<div class="step-navigation">`;
+
             html += `
-                <div class="step-navigation">
-                    <button onclick="goToPreviousRow()" ${currentRowIndex === 0 ? "disabled" : ""}>Zurück</button>
+                <button onclick="goToPreviousRow()" ${currentRowIndex === 0 ? "disabled" : ""}>
+                    Zurück
+                </button>
             `;
 
             if (currentRowIndex < blockCount - 1) {
-                html += `<button onclick="goToNextRow()">Weiter</button>`;
+                html += `
+                    <button onclick="goToNextRow()">
+                        Weiter
+                    </button>
+                `;
             } else {
-                html += `<button onclick="solvePuzzle()">Lösung Berechnen</button>`;
+                html += `
+                    <button onclick="solvePuzzle()">
+                        Lösung Berechnen
+                    </button>
+                `;
             }
 
             html += `</div>`;
 
-            wizard.innerHTML = html;
+            return html;
         }
 
+        /*
+            Speichert die aktuell sichtbare Reihe
+        */
         function saveCurrentRow() {
             const blockCount = puzzleState.blockCount;
             const currentRowIndex = puzzleState.currentRowIndex;
@@ -424,6 +297,9 @@
             }
         }
 
+        /*
+            Eine Reihe weiter
+        */
         function goToNextRow() {
             saveCurrentRow();
 
@@ -433,6 +309,9 @@
             }
         }
 
+        /*
+            Eine Reihe zurück
+        */
         function goToPreviousRow() {
             saveCurrentRow();
 
@@ -442,31 +321,34 @@
             }
         }
 
+        /*
+            Startet die Berechnung
+        */
         function solvePuzzle() {
             saveCurrentRow();
 
             const blockCount = puzzleState.blockCount;
-            const holeCount = HOLE_COUNT;
-            const targetPosition = TARGET_POSITION;
-
             const startState = [];
             const goalState = [];
 
             for (let i = 0; i < blockCount; i++) {
                 const position = readNumber(`pos_${i}`);
 
-                if (position < 1 || position > holeCount) {
+                if (position < 1 || position > HOLE_COUNT) {
                     showError(`B${i + 1} hat eine ungültige Position. Erlaubt sind nur 1 bis 7.`);
                     return;
                 }
 
                 startState.push(position);
-                goalState.push(targetPosition);
+                goalState.push(TARGET_POSITION);
             }
 
-            const effects = puzzleState.effects;
-
-            const solution = bfsSolve(startState, goalState, effects, holeCount);
+            const solution = bfsSolve(
+                startState,
+                goalState,
+                puzzleState.effects,
+                HOLE_COUNT
+            );
 
             if (!solution.found) {
                 showError(solution.message);
@@ -476,6 +358,10 @@
             showSolution(solution.steps);
         }
 
+        /*
+            Breitensuche:
+            Findet die kürzeste Lösung
+        */
         function bfsSolve(startState, goalState, effects, holeCount) {
             const startKey = stateToKey(startState);
             const goalKey = stateToKey(goalState);
@@ -514,7 +400,12 @@
 
                 for (let blockIndex = 0; blockIndex < effects.length; blockIndex++) {
                     for (const direction of [1, -1]) {
-                        const nextState = applyMove(currentState, effects[blockIndex], direction, holeCount);
+                        const nextState = applyMove(
+                            currentState,
+                            effects[blockIndex],
+                            direction,
+                            holeCount
+                        );
 
                         if (nextState === null) {
                             continue;
@@ -526,11 +417,9 @@
                             continue;
                         }
 
-                        const actionText = buildActionText(blockIndex, direction);
-
                         visited.set(nextKey, {
                             previous: stateToKey(currentState),
-                            action: actionText
+                            action: buildActionText(blockIndex, direction)
                         });
 
                         if (nextKey === goalKey) {
@@ -551,6 +440,9 @@
             };
         }
 
+        /*
+            Wendet einen Zug auf den aktuellen Zustand an
+        */
         function applyMove(state, effectRow, direction, holeCount) {
             const nextState = [];
 
@@ -567,6 +459,9 @@
             return nextState;
         }
 
+        /*
+            Erstellt den Text für einen Bewegungsschritt
+        */
         function buildActionText(blockIndex, direction) {
             let directionText;
 
@@ -579,27 +474,35 @@
             return `B${blockIndex + 1} nach ${directionText}`;
         }
 
+        /*
+            Baut aus den gespeicherten Zuständen die Lösung zusammen
+        */
         function reconstructSteps(visited, startKey, goalKey) {
             const steps = [];
             let currentKey = goalKey;
 
             while (currentKey !== startKey) {
                 const data = visited.get(currentKey);
+
                 steps.push(data.action);
                 currentKey = data.previous;
             }
 
             steps.reverse();
+
             return steps;
         }
 
+        /*
+            Zeigt die gefundene Lösung an
+        */
         function showSolution(steps) {
             const resultArea = document.getElementById("resultArea");
             const status = document.getElementById("status");
             const solutionOutput = document.getElementById("solutionOutput");
             const compactOutput = document.getElementById("compactOutput");
 
-            resultArea.style.display = "block";
+            resultArea.classList.remove("is-hidden");
 
             if (steps.length === 0) {
                 status.innerHTML = "<p class='success'>Das Schloss ist bereits gelöst.</p>";
@@ -610,13 +513,7 @@
 
             status.innerHTML = `<p class='success'>Lösung gefunden mit ${steps.length} Bewegungen.</p>`;
 
-            let exactText = "";
-
-            for (let i = 0; i < steps.length; i++) {
-                exactText += `${i + 1}. ${steps[i]}\n`;
-            }
-
-            solutionOutput.textContent = exactText;
+            solutionOutput.textContent = buildExactText(steps);
             compactOutput.textContent = buildCompactText(steps);
 
             resultArea.scrollIntoView({
@@ -624,12 +521,30 @@
             });
         }
 
+        /*
+            Erstellt die genaue Lösung mit Nummerierung
+        */
+        function buildExactText(steps) {
+            let text = "";
+
+            for (let i = 0; i < steps.length; i++) {
+                text += `${i + 1}. ${steps[i]}\n`;
+            }
+
+            return text;
+        }
+
+        /*
+            Erstellt die Kurzform:
+            Gleiche Bewegungen werden zusammengefasst
+        */
         function buildCompactText(steps) {
             if (steps.length === 0) {
                 return "";
             }
 
             const groups = [];
+
             let currentAction = steps[0];
             let count = 1;
 
@@ -665,13 +580,17 @@
             return text;
         }
 
+        /*
+            Fehlermeldung anzeigen
+        */
         function showError(message) {
             const resultArea = document.getElementById("resultArea");
             const status = document.getElementById("status");
             const solutionOutput = document.getElementById("solutionOutput");
             const compactOutput = document.getElementById("compactOutput");
 
-            resultArea.style.display = "block";
+            resultArea.classList.remove("is-hidden");
+
             status.innerHTML = `<p class='error'>${message}</p>`;
             solutionOutput.textContent = "";
             compactOutput.textContent = "";
@@ -681,6 +600,16 @@
             });
         }
 
+        /*
+            Ergebnisbereich ausblenden
+        */
+        function hideResultArea() {
+            document.getElementById("resultArea").classList.add("is-hidden");
+        }
+
+        /*
+            Hilfsfunktionen
+        */
         function readNumber(id) {
             return Number(document.getElementById(id).value);
         }
