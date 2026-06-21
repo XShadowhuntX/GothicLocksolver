@@ -139,10 +139,13 @@
             let html = "";
 
             html += "<h2>1. Aktuelle Pinpositionen</h2>";
-            html += "<p class='hint'>
-                            Zähle die Löcher von links nach rechts. Bei 7 Löchern ist die Mitte Position 4.<br>
-                            Zähle die Blöcke von oben nach unten.
-                     </p>";
+            html += `
+                <p class="hint">
+                    Zähle die Löcher von links nach rechts. Bei 7 Löchern ist die Mitte Position 4.<br>
+                    Zähle die Blöcke von oben nach unten.
+                </p>
+            `;
+            
             html += "<div class='pin-grid'>";
 
             for (let i = 0; i < blockCount; i++) {
