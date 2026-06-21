@@ -139,7 +139,10 @@
             let html = "";
 
             html += "<h2>1. Aktuelle Pinpositionen</h2>";
-            html += "<p class='hint'>Zähle die Löcher von links nach rechts. Bei 7 Löchern ist die Mitte Position 4.</p>";
+            html += "<p class='hint'>
+                            Zähle die Löcher von links nach rechts. Bei 7 Löchern ist die Mitte Position 4.<br>
+                            Zähle die Blöcke von oben nach unten.
+                     </p>";
             html += "<div class='pin-grid'>";
 
             for (let i = 0; i < blockCount; i++) {
@@ -173,8 +176,6 @@
                     <strong>links</strong> bedeutet: betroffener Block bewegt sich nach links.<br>
                     <strong>keine Bewegung</strong> bedeutet: betroffener Block bewegt sich nicht.<br>
                     
-                    <strong>Blöcke</strong> werden gezählt von <strong>unten</strong> ab 1.<br>
-                    <strong>Pins</strong> werden gezählt von <strong>links</strong> ab 1.<br><br>
                     Die Bewegung nach links wird automatisch gespiegelt.
                 </p>
             `;
